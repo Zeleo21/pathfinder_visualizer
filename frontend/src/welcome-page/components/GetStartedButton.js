@@ -3,7 +3,7 @@ import './button.css';
 export default function GetStartedButton() {
     return (
         <div className='GetStartedButton'>
-                <a href="javascript:;">
+                <a href="pathfinder">
                     <svg className="icon-arrow before">
                         <use xlinkHref="#arrow"></use>
                             </svg>

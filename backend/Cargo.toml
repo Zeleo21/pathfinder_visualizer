@@ -5,6 +5,14 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "backend"
+path = "src/maze/mod.rs"
+
+[[bin]]
+name = "backend"
+path = "src/main.rs"
+
 [dependencies]
 actix-web = "4"
-petgraph = "0.6.4"
+svg = "0.8"

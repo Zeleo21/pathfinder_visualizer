@@ -1,6 +1,10 @@
 // use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use std::error::Error;
+use std::time::Instant;
 
-mod maze;
+use backend::draw::draw;
+use backend::maze::Maze;
+
 
 // #[get("/")]
 // async fn hello() -> impl Responder {
@@ -16,8 +20,28 @@ mod maze;
 //     HttpResponse::Ok().body("Hey there!")
 // }
 
-fn main() {
-    maze::mazegenerator::visualize_maze();
+fn main() -> Result<(), Box<dyn Error>> {
+  let args = std::env::args()
+    .skip(1)
+    .map(|arg| arg.parse::<u32>())
+    .collect::<Result<Vec<_>, _>>()?;
+
+  if args.len() >= 2 {
+    let (width, height) = (args[0], args[1]);
+
+    let t = Instant::now();
+    let maze = Maze::generate(width, height);
+    println!("Generated {}x{} maze in {:?}.", width, height, t.elapsed());
+
+    let t = Instant::now();
+    let document = draw(&maze);
+    svg::save("image.svg", &document)?;
+    println!("Saved to SVG in {:?}.", t.elapsed());
+
+    Ok(())
+  } else {
+    Err(format!("Invalid args (expected width and height): {:?}", args).into())
+  }
 }
 
 // #[actix_web::main]

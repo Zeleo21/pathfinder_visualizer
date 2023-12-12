@@ -6,7 +6,12 @@ const baseURL = process.env.BACKEND_URL;
 
 export default function DisplayMaze() {
     const [maze, setMaze] = useState(null);
-    
+    const [render, setRender] = useState(false);
+
+    const refresh = () => {
+        setRender(!render);
+    }
+
     useEffect(() => {
         const body = JSON.stringify({
             "width": 10,
@@ -21,7 +26,7 @@ export default function DisplayMaze() {
             console.log(response.data);
             setMaze(response.data);
         })
-    }, [])
+    }, [render]);
 
     if(!maze) {
         return null;
@@ -56,9 +61,11 @@ export default function DisplayMaze() {
         <div class="container-fluid">
             <div class="row">
                 <div class="col">
-                    Column
+                    <button type="button" class="btn btn-primary" id="reset" onClick={refresh}>Reset</button>
                 </div>
-                <div class="col-md-6" dangerouslySetInnerHTML={{__html: maze}}>
+                <div class="col-md-6">
+                    <div className="maze" dangerouslySetInnerHTML={{__html: maze}}>
+                </div>
                 </div>
                 <div class="col">
                     Column

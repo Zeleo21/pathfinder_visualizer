@@ -6,4 +6,21 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    background-color: black;
+}
+.col {
+    background-color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.maze {
+    width: 90%;
+    background-color: white;
+    border: 2px solid #6f42c1;
+}
+
+#reset {
+    background-color: #6f42c1;
+
 }

@@ -1,9 +1,14 @@
 import './button.css';
+import { useNavigate } from 'react-router-dom';
 
 export default function GetStartedButton() {
+    const navigate = useNavigate();
+    const handleClick = () => {
+        navigate('/pathfinder')
+    }
     return (
         <div className='GetStartedButton'>
-                <a href="pathfinder">
+                <a onClick={handleClick}>
                     <svg className="icon-arrow before">
                         <use xlinkHref="#arrow"></use>
                             </svg>

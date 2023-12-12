@@ -21,8 +21,7 @@ pub fn draw(maze: &Maze) -> Document {
 
   let (width, height) = (maze.width() * CELL_SIDE, maze.height() * CELL_SIDE);
   let document = Document::new()
-    .set("viewBox", (0, 0, width, height))
-    .set("style", "background-color: white;");
+    .set("viewBox", (0, 0, width, height));
   paths.into_iter().fold(document, |document, path| document.add(path))
 }
 

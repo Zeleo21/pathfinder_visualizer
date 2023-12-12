@@ -14,5 +14,6 @@ name = "backend"
 path = "src/main.rs"
 
 [dependencies]
+actix-cors = "0.6.5"
 actix-web = "4"
 svg = "0.8"

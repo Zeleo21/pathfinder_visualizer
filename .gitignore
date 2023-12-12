@@ -16,3 +16,4 @@ Cargo.lock
 .gitignore.swp
 *.txt
 *.svg
+*.env

@@ -27,13 +27,8 @@ async fn get_maze(req: web::Json<MazeRequest>) -> impl Responder {
 
       let t = Instant::now();
       let document = draw(&maze);
-      let _ = svg::save("image.svg", &document);
       println!("Saved to SVG in {:?}.", t.elapsed());
-      if let Ok(svg_content) = web::block(|| std::fs::read_to_string("image.svg")).await {
-          return HttpResponse::Ok().body(svg_content.unwrap());
-      }else {
-          return HttpResponse::InternalServerError().body("Internal Server Error");
-      }
+      return HttpResponse::Ok().body(document.to_string());
 }
 
 #[actix_web::main]

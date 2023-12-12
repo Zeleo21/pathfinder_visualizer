@@ -53,7 +53,18 @@ export default function DisplayMaze() {
             <path d="M30,20 l0,10" fill="none" stroke="black" stroke-linecap="square" stroke-linejoin="square" stroke-width="2"/>
             <path d="M20,30 l10,0" fill="none" stroke="black" stroke-linecap="square" stroke-linejoin="square" stroke-width="2"/>
         </svg> */}
-        <div className="maze" dangerouslySetInnerHTML={{__html: maze}} />
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col">
+                    Column
+                </div>
+                <div class="col-md-6" dangerouslySetInnerHTML={{__html: maze}}>
+                </div>
+                <div class="col">
+                    Column
+                </div>
+            </div>
+        </div>
       </>  
     );
 }

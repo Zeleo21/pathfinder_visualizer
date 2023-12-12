@@ -1,5 +1,9 @@
-.maze {
-    display: flex;
+.container-fluid, .row    {
     height: 100%;
+}
+
+.col-md-6 {
+    display: flex;
     justify-content: center;
+    align-items: center;
 }

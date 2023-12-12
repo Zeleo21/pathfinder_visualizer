@@ -8,7 +8,7 @@ export default function GetStartedButton() {
     }
     return (
         <div className='GetStartedButton'>
-                <a onClick={handleClick}>
+                <a className="startedButton" onClick={handleClick}>
                     <svg className="icon-arrow before">
                         <use xlinkHref="#arrow"></use>
                             </svg>

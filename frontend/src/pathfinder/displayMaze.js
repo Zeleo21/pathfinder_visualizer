@@ -8,7 +8,17 @@ export default function DisplayMaze() {
     const [maze, setMaze] = useState(null);
     
     useEffect(() => {
-        axios.get("http://localhost:8080/maze").then((response) => {
+        const body = JSON.stringify({
+            "width": 10,
+            "height": 10
+        })
+        axios.post("http://localhost:8080/maze", body, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then((response) => {
+            console.log(response.data);
             setMaze(response.data);
         })
     }, [])

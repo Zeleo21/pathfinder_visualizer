@@ -7,7 +7,6 @@ export default function Welcome() {
     <div className="Welcome-page">
         <div className="content-wrapper">
           <GetStartedButton></GetStartedButton>
-          <img src="../logo.svg" className="App-logo" alt="logo" />
           {/* <Spline scene="https://prod.spline.design/Mh5polbJfdV2zwSH/scene.splinecode">
           </Spline> */}
         </div>

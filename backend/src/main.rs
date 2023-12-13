@@ -6,6 +6,7 @@ use svg::Document;
 use backend::draw::draw;
 use backend::maze::Maze;
 use backend::draw::create_document;
+use std::{sync::{Arc, Mutex}};
 
 
 //Global variables for SVG
@@ -38,7 +39,7 @@ async fn get_maze(req: web::Json<MazeRequest>) -> impl Responder {
         DOCUMENT = Some(create_document(PATHS.clone(), &maze));
         println!("Saved to SVG in {:?}.", t.elapsed());
         match &DOCUMENT { 
-            Some(x) => return HttpResponse::Ok().body(x.to_string()),
+            Some(x) => return HttpResponse::Ok().body(x.clone().to_string()),
             None => return HttpResponse::InternalServerError().body("Internal Server Error"),
         }
     };

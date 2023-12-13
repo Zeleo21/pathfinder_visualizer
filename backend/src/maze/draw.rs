@@ -49,7 +49,7 @@ pub fn add_path(paths: &mut Vec<Path>, maze: &Maze, (row, col): Cell, walls: &Ha
     println!("possible to go {}", direction);
     match direction {
       Top => {
-        let path = make_line((col * CELL_SIDE + (CELL_SIDE / 2), (row * CELL_SIDE)), (0, CELL_SIDE), "red");
+        let path = make_line((col * CELL_SIDE + (CELL_SIDE / 2), (row * CELL_SIDE) - STROKE_WIDTH), (0, CELL_SIDE), "red");
         paths.push(path);
       },
       Left => {
@@ -59,7 +59,7 @@ pub fn add_path(paths: &mut Vec<Path>, maze: &Maze, (row, col): Cell, walls: &Ha
         
       },
       Bottom => {
-        
+
       }
     }
   }

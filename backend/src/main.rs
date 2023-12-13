@@ -1,10 +1,16 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, HttpRequest, http};
-use std::error::Error;
 use std::time::Instant;
-
+use svg::node::element::path::Data;
+use svg::node::element::Path;
+use svg::Document;
 use backend::draw::draw;
 use backend::maze::Maze;
+use backend::draw::create_document;
 
+
+//Global variables for SVG
+static mut PATHS: Vec<Path> = vec![];
+static mut  DOCUMENT: Option<Document> = None;
 
 #[get("/")]
 async fn hello() -> impl Responder {
@@ -26,9 +32,16 @@ async fn get_maze(req: web::Json<MazeRequest>) -> impl Responder {
       println!("Generated {}x{} maze", params.width, params.height);
 
       let t = Instant::now();
-      let document = draw(&maze);
-      println!("Saved to SVG in {:?}.", t.elapsed());
-      return HttpResponse::Ok().body(document.to_string());
+      unsafe { 
+        PATHS  = draw(&maze);
+        PATHS.clone().into_iter().for_each(|line| println!("{}", line));
+        DOCUMENT = Some(create_document(PATHS.clone(), &maze));
+        println!("Saved to SVG in {:?}.", t.elapsed());
+        match &DOCUMENT { 
+            Some(x) => return HttpResponse::Ok().body(x.to_string()),
+            None => return HttpResponse::InternalServerError().body("Internal Server Error"),
+        }
+    };
 }
 
 #[actix_web::main]

@@ -9,7 +9,7 @@ use crate::maze::{Cell, Maze, Wall};
 const CELL_SIDE: u32 = 10;
 const STROKE_WIDTH: u32 = 2;
 
-pub fn draw(maze: &Maze) -> Document {
+pub fn draw(maze: &Maze) -> Vec<Path> {
   let mut paths = vec![];
 
   for row in 0..maze.height() {
@@ -19,6 +19,10 @@ pub fn draw(maze: &Maze) -> Document {
     }
   }
   //paths.push(make_line((10, 5),(10,0), "red"));
+  return paths;
+}
+
+pub fn create_document(paths: Vec<Path>, maze: &Maze) -> Document {
   let (width, height) = (maze.width() * CELL_SIDE, maze.height() * CELL_SIDE);
   let document = Document::new()
     .set("viewBox", (0, 0, width, height))

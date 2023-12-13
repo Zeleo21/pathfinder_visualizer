@@ -1,8 +1,4 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, HttpRequest, http};
-use std::time::Instant;
-use svg::node::element::path::Data;
-use svg::node::element::Path;
-use svg::Document;
 use backend::draw::draw;
 use backend::maze::Maze;
 use backend::draw::create_document;
@@ -23,7 +19,7 @@ struct MazeRequest {
     height: u32
 }
 
-async fn get_maze(data: web::Data<AppState>,req: web::Json<MazeRequest>) -> impl Responder {
+async fn get_maze(data: web::Data<AppState>, req: web::Json<MazeRequest>) -> impl Responder {
       let params = req.into_inner();
       if params.width == 0 || params.height == 0 {
           return HttpResponse::BadRequest().body("Invalid request, please provide valid width and height");
@@ -38,8 +34,8 @@ async fn get_maze(data: web::Data<AppState>,req: web::Json<MazeRequest>) -> impl
       //This is to save the maze into the app state for reusability.
       let mut app_state_paths = data.paths.lock().unwrap();
       *app_state_paths = document.to_string();
-      println!("App state is now \n {}", *app_state_paths);
-      
+      //println!("App state is now \n {}", *app_state_paths);
+
       return HttpResponse::Ok().body(document.to_string());
 }
 

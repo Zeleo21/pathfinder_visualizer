@@ -109,6 +109,13 @@ impl Maze {
     });
     return free_cells;
   }
+
+  pub fn get_possible_directions(&self, cell: Cell) -> HashSet<Wall> {
+    let all_walls: HashSet<Wall> = [Top, Right, Bottom, Left].iter().cloned().collect();
+    let binding = HashSet::new();
+    let cell_walls = self.walls.get(&cell).unwrap_or(&binding);
+    return all_walls.difference(cell_walls).cloned().collect();
+  }
 }
 
 impl std::ops::Index<Cell> for Maze {

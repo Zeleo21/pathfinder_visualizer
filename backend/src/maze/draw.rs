@@ -16,13 +16,10 @@ pub fn draw(maze: &Maze) -> Vec<Path> {
     for col in 0..maze.width() {
       let cell = (row, col);
       add_cell_paths(&mut paths, &maze, cell, &maze[cell]);
-      if col == 0 {
-        //add_path(&mut paths, &maze, cell , &maze[cell]);
-        maze.free_neighbour(cell);
-      }
+        add_path(&mut paths, &maze, cell , &maze[cell]);
     }
   }
-  paths.push(make_line((10, 5),(10,0), "red"));
+  //paths.push(make_line((10, 5),(10,0), "red"));
   return paths;
 }
 
@@ -47,9 +44,24 @@ fn make_line(from: (u32, u32), relative_to: (u32, u32), color: &str) -> Path {
 }
 
 pub fn add_path(paths: &mut Vec<Path>, maze: &Maze, (row, col): Cell, walls: &HashSet<Wall>) {
-  let res = maze.neighbour((row,col), Top);
-  if let Some((row, col)) = res {
-    println!("the cell at : {} {} has a neighbour in the top direction", row, col);
+  let res = maze.get_possible_directions((row,col));
+  for direction in res {
+    println!("possible to go {}", direction);
+    match direction {
+      Top => {
+        let path = make_line((col * CELL_SIDE + (CELL_SIDE / 2), (row * CELL_SIDE)), (0, CELL_SIDE), "red");
+        paths.push(path);
+      },
+      Left => {
+        
+      },
+      Right => {
+        
+      },
+      Bottom => {
+        
+      }
+    }
   }
 }
 

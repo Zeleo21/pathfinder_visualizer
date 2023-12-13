@@ -25,6 +25,17 @@ impl Wall {
   }
 }
 
+impl std::fmt::Display for Wall {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      Top => write!(f, "Top"),
+      Right => write!(f, "Right"),
+      Bottom => write!(f, "Bottom"),
+      Left => write!(f, "Left"),
+    }
+  }
+}
+
 #[derive(Debug, Clone)]
 pub struct Maze {
   width: u32,
@@ -82,6 +93,21 @@ impl Maze {
         }
       }
     }
+  }
+  
+  pub fn free_neighbour(&self, cell: Cell) -> HashSet<Option<Cell>> {
+    let all_walls: HashSet<Wall> = [Top, Right, Bottom, Left].iter().cloned().collect();
+    let binding = HashSet::new();
+    let cell_walls = self.walls.get(&cell).unwrap_or(&binding);
+    let difference: HashSet<Wall> = all_walls.difference(cell_walls).cloned().collect();
+    let mut free_cells: HashSet<Option<Cell>>   = HashSet::new();
+    difference.into_iter().for_each(|wall| {
+      if let Some(neighbour) = self.neighbour(cell, wall) {
+        println!("the cell at : {} {} has a neighbour in the {} direction", cell.0, cell.1, wall);
+        free_cells.insert(Some(neighbour));
+      }
+    });
+    return free_cells;
   }
 }
 
@@ -153,3 +179,4 @@ impl Maze {
     }
   }
 }
+

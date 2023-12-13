@@ -34,7 +34,7 @@ async fn get_maze(req: web::Json<MazeRequest>) -> impl Responder {
       let t = Instant::now();
       unsafe { 
         PATHS  = draw(&maze);
-        PATHS.clone().into_iter().for_each(|line| println!("{}", line));
+        //PATHS.clone().into_iter().for_each(|line| println!("{}", line));
         DOCUMENT = Some(create_document(PATHS.clone(), &maze));
         println!("Saved to SVG in {:?}.", t.elapsed());
         match &DOCUMENT { 

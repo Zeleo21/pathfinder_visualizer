@@ -6,12 +6,11 @@ use svg::Document;
 use backend::draw::draw;
 use backend::maze::Maze;
 use backend::draw::create_document;
-use std::{sync::{Arc, Mutex}};
+use std::sync::Mutex;
 
-
-//Global variables for SVG
-static mut PATHS: Vec<Path> = vec![];
-static mut  DOCUMENT: Option<Document> = None;
+struct AppState {
+    paths: Mutex<String>,
+}
 
 #[get("/")]
 async fn hello() -> impl Responder {
@@ -24,7 +23,7 @@ struct MazeRequest {
     height: u32
 }
 
-async fn get_maze(req: web::Json<MazeRequest>) -> impl Responder {
+async fn get_maze(data: web::Data<AppState>,req: web::Json<MazeRequest>) -> impl Responder {
       let params = req.into_inner();
       if params.width == 0 || params.height == 0 {
           return HttpResponse::BadRequest().body("Invalid request, please provide valid width and height");
@@ -32,27 +31,30 @@ async fn get_maze(req: web::Json<MazeRequest>) -> impl Responder {
       let maze = Maze::generate(params.width, params.height);
       println!("Generated {}x{} maze", params.width, params.height);
 
-      let t = Instant::now();
-      unsafe { 
-        PATHS  = draw(&maze);
-        //PATHS.clone().into_iter().for_each(|line| println!("{}", line));
-        DOCUMENT = Some(create_document(PATHS.clone(), &maze));
-        println!("Saved to SVG in {:?}.", t.elapsed());
-        match &DOCUMENT { 
-            Some(x) => return HttpResponse::Ok().body(x.clone().to_string()),
-            None => return HttpResponse::InternalServerError().body("Internal Server Error"),
-        }
-    };
+      //We create the SVG structure
+      let paths = draw(&maze);
+      let document = create_document(paths, &maze);
+
+      //This is to save the maze into the app state for reusability.
+      let mut app_state_paths = data.paths.lock().unwrap();
+      *app_state_paths = document.to_string();
+      println!("App state is now \n {}", *app_state_paths);
+      
+      return HttpResponse::Ok().body(document.to_string());
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-      HttpServer::new(|| {
+    let app_state = web::Data::new(AppState {
+        paths: Mutex::new(String::new()),
+    });
+      HttpServer::new(move || {
         let cors = actix_cors::Cors::default().allow_any_origin()
         .allowed_methods(vec!["GET", "POST"])
         .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
         .allowed_header(http::header::CONTENT_TYPE);
         App::new()
+            .app_data(app_state.clone())
             .wrap(cors)
             .service(hello)
             .route("/maze", web::post().to(get_maze))

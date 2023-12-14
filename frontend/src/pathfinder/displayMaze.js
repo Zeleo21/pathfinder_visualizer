@@ -2,32 +2,26 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import './maze.css';
 import Navbar from '../misc/Navbar';
+import {getMaze, dfs} from '../services/axios';
+import { useRef } from 'react';
+import DisplayDfs from "./components/dfsButton";
 
 const baseURL = process.env.BACKEND_URL;
 
 export default function DisplayMaze() {
     const [maze, setMaze] = useState(null);
-    const [render, setRender] = useState(false);
+    const [renderMaze, setRenderMaze] = useState(false);
 
-    const refresh = () => {
-        setRender(!render);
+    const refreshMaze = () => {
+        setRenderMaze(!renderMaze);
     }
 
     useEffect(() => {
-        const body = JSON.stringify({
-            "width": 10,
-            "height": 10
-        })
-        axios.post("http://localhost:8080/maze", body, {
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then((response) => {
-            console.log(response.data);
-            setMaze(response.data);
-        })
-    }, [render]);
+        getMaze().then((data) => {
+            setMaze(data.data); 
+        });
+                // Reset both actions after processing
+    }, [renderMaze]);
 
     if(!maze) {
         return null;
@@ -41,7 +35,7 @@ export default function DisplayMaze() {
         <div class="container-fluid d-flex flex-column justify-content-between">
             <div class="row">
                 <div class="col">
-                    <button type="button" class="btn btn-primary" id="reset" onClick={refresh}>Reset</button>
+                    <button type="button" class="btn btn-primary" id="reset" onClick={refreshMaze}>Reset</button>
                 </div>
                 <div class="col-md-6 d-flex flex-column">
                 <div className="welcomeText text-center">
@@ -51,7 +45,7 @@ export default function DisplayMaze() {
                 </div>
                 </div>
                 <div class="col">
-                    
+                    <DisplayDfs setMaze={setMaze}></DisplayDfs>
                 </div>
             </div>
         </div>

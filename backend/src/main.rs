@@ -11,7 +11,7 @@ use svg::parser::Event;
 use std::sync::Mutex;
 
 struct AppState {
-    paths: Mutex<String>,
+    maze: Mutex<Maze>,
 }
 
 #[get("/")]
@@ -23,6 +23,14 @@ async fn hello() -> impl Responder {
 struct MazeRequest {
     width: u32,
     height: u32
+}
+
+async fn dfs(data: web::Data<AppState>) -> impl Responder {
+    let maze = data.maze.lock().unwrap();
+    let paths = draw(&maze);
+    let squares = fill_maze(&maze);
+    let document = create_document(&paths, Some(&squares), &maze);
+    return HttpResponse::Ok().body(document.to_string());
 }
 
 async fn get_maze(data: web::Data<AppState>, req: web::Json<MazeRequest>) -> impl Responder {
@@ -45,14 +53,15 @@ async fn get_maze(data: web::Data<AppState>, req: web::Json<MazeRequest>) -> imp
       //      This file should handle the maze state to have persistent data accessibility with serializer and deserializer of the maze.
       //
 
-      let mut app_state_paths = data.paths.lock().unwrap();
-      *app_state_paths = paths.clone().into_iter().map(|path| { path.to_string() + "\n" }).collect::<String>();
-      println!("App state is now \n {}", *app_state_paths);
+      let mut app_state_maze = data.maze.lock().unwrap();
+      *app_state_maze = maze.clone();
+      //*app_state_paths = paths.clone().into_iter().map(|path| { path.to_string() + "\n" }).collect::<String>();
+     // println!("App state is now \n {}", *app_state_paths);
       println!("------------------------------------------------------------------------");
-      let newPaths = deserialize_path(&app_state_paths);
+      //let newPaths = deserialize_path(&app_state_paths);
 
-      let newDoc = create_document(&newPaths, None, &maze);
-      println!("{} ", newDoc.to_string());
+      //let newDoc = create_document(&newPaths, None, &maze);
+      //println!("{} ", newDoc.to_string());
 
       //
       //
@@ -61,36 +70,12 @@ async fn get_maze(data: web::Data<AppState>, req: web::Json<MazeRequest>) -> imp
       return HttpResponse::Ok().body(document.to_string());
 }
 
-pub fn deserialize_path(data: &String) -> Vec<Path> {
-    let mut res = vec![];
-    for path in data.split('\n') {
-        if let Some(path) = extract_attributes(path) {
-            res.push(Path::new().set("d", path));
-        }
-    }
-    return res;
-}
-
-
-fn extract_attributes(svg_path: &str) -> Option<String> {
-    // Regular expression to match the attributes inside the path tag
-    let re = Regex::new(r#"<path([^>]+)/>"#).unwrap();
-
-    // Extract the matched attributes
-    if let Some(captures) = re.captures(svg_path) {
-        if let Some(attributes) = captures.get(1) {
-            return Some(attributes.as_str().trim().to_string());
-        }
-    }
-
-    None
-}
 
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let app_state = web::Data::new(AppState {
-        paths: Mutex::new(String::new()),
+        maze: Mutex::new(Maze::new_empty()),
     });
       HttpServer::new(move || {
         let cors = actix_cors::Cors::default().allow_any_origin()
@@ -102,6 +87,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .service(hello)
             .route("/maze", web::post().to(get_maze))
+            .route("/maze/dfs", web::get().to(dfs))
     })
     .bind(("127.0.0.1", 8080))?
     .run()

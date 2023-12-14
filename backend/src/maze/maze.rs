@@ -43,6 +43,10 @@ pub struct Maze {
   walls: HashMap<Cell, HashSet<Wall>>,
 }
 impl Maze {
+  pub fn new_empty() -> Maze {
+    let walls = HashMap::new();
+    Maze { width: 0, height: 0, walls }
+  }
   pub fn new(width: u32, height: u32) -> Maze {
     let walls = HashMap::new();
     Maze { width, height, walls }

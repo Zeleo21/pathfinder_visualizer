@@ -1,5 +1,5 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, HttpRequest, http};
-use backend::draw::draw;
+use backend::draw::{draw, fill_maze};
 use backend::maze::Maze;
 use backend::draw::create_document;
 use std::sync::Mutex;
@@ -29,7 +29,8 @@ async fn get_maze(data: web::Data<AppState>, req: web::Json<MazeRequest>) -> imp
 
       //We create the SVG structure
       let paths = draw(&maze);
-      let document = create_document(paths, &maze);
+      let squares = fill_maze(&maze);
+      let document = create_document(&paths, &squares, &maze);
 
       //This is to save the maze into the app state for reusability.
       let mut app_state_paths = data.paths.lock().unwrap();

@@ -27,21 +27,24 @@ pub fn fill_maze(maze: &Maze) -> Vec<Rectangle> {
   for row in 0..maze.height() {
     for col in 0..maze.width() {
       let cell = (row, col);
-      if col == 0 || col == 1 {
-        fill_cell(&mut squares, &maze, cell, &maze[cell]);
-      }
+        fill_cell(&mut squares, cell);
     }
   }
   return squares;
 }
 
-pub fn create_document(paths: &Vec<Path>, squares: &Vec<Rectangle>, maze: &Maze) -> Document {
+pub fn create_document(paths: &Vec<Path>, squares: Option<&Vec<Rectangle>>, maze: &Maze) -> Document {
   let (width, height) = (maze.width() * CELL_SIDE, maze.height() * CELL_SIDE);
-  let document = Document::new()
+  let mut document = Document::new()
     .set("viewBox", (0, 0, width, height))
-    .set("style", "object-fit: fill;, width: 100%, height: 100%")
-    .add(masked_group(paths, squares));
-  println!("{}", document.to_string());
+    .set("style", "object-fit: fill;, width: 100%, height: 100%");
+  if let Some(squares) = squares {
+    document = document.add(masked_group(paths, squares));
+  }
+  else {
+    document = paths.into_iter().fold( document, |doc, path| doc.add(path.clone()));
+  }
+  //println!("{}", document.clone().to_string());
   return document;
 }
 
@@ -116,38 +119,10 @@ fn make_square(x: u32, y: u32, width: u32, height: u32) -> Rectangle {
     .set("width", width)
     .set("height",height)
     .set("fill", "grey")
-}
-fn get_position(col: u32, row: u32) -> (u32, u32) {
-  if col == 0 || row == 0 {
-    return (STROKE_WIDTH / 2,STROKE_WIDTH / 2);
-  }
-  return (STROKE_WIDTH / 2,STROKE_WIDTH / 2);
+    .set("fill-opacity", "0.5")
 }
 
-pub fn fill_cell(squares: &mut Vec<Rectangle>, maze: &Maze, (row, col): Cell, walls: &HashSet<Wall>) {
-  let mut width = CELL_SIDE;
-  let mut height = CELL_SIDE;
-  let mut x = col * CELL_SIDE;
-  let mut y = row * CELL_SIDE;
-  for wall in walls {
-    match wall{
-      Top => {
-        y += STROKE_WIDTH / 2;
-      },
-      Left => {
-        x += STROKE_WIDTH / 2;
-      },
-      Right => {
-        if x != col * CELL_SIDE + STROKE_WIDTH / 2 {
-          width -= STROKE_WIDTH;
-        }
-      },
-      Bottom => {
-        if y != row * CELL_SIDE + STROKE_WIDTH / 2 {
-          height -= STROKE_WIDTH;
-        }
-      }
-    }
-  }
-  squares.push(make_square(x, y, width, height));
+
+pub fn fill_cell(squares: &mut Vec<Rectangle>, (row, col): Cell) {
+  squares.push(make_square(col * CELL_SIDE, row * CELL_SIDE, CELL_SIDE, CELL_SIDE));
 }

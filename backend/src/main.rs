@@ -1,14 +1,22 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, HttpRequest, http};
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, HttpRequest, http, middleware};
 use backend::draw::{draw, fill_maze};
 use backend::maze::Maze;
 use backend::draw::create_document;
 use regex::Regex;
+use server::websocket::{MyWs};
 use svg::Document;
 use svg::node::Value;
 use svg::node::element::Path;
 use svg::node::element::tag::Tag;
 use svg::parser::Event;
 use std::sync::Mutex;
+use actix::{Actor, StreamHandler};
+use actix_web_actors::ws;
+
+
+mod server;
+
+
 
 struct AppState {
     maze: Mutex<Maze>,
@@ -25,12 +33,18 @@ struct MazeRequest {
     height: u32
 }
 
-async fn dfs(data: web::Data<AppState>) -> impl Responder {
-    let maze = data.maze.lock().unwrap();
-    let paths = draw(&maze);
-    let squares = fill_maze(&maze);
-    let document = create_document(&paths, Some(&squares), &maze);
-    return HttpResponse::Ok().body(document.to_string());
+async fn dfs(data: web::Data<AppState>, req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, actix_web::Error> {
+    let resp  = ws::start(
+        MyWs::new(),
+        &req,
+        stream
+    );
+    println!("{:?}", resp);
+    resp
+    // let maze = data.maze.lock().unwrap();
+    // let paths = draw(&maze);
+    // let squares = fill_maze(&maze);
+    // let document = create_document(&paths, Some(&squares), &maze);
 }
 
 async fn get_maze(data: web::Data<AppState>, req: web::Json<MazeRequest>) -> impl Responder {
@@ -87,7 +101,8 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .service(hello)
             .route("/maze", web::post().to(get_maze))
-            .route("/maze/dfs", web::get().to(dfs))
+            .service(web::resource("/maze/dfs").route(web::get().to(dfs)))
+            .wrap(middleware::Logger::default())
     })
     .bind(("127.0.0.1", 8080))?
     .run()

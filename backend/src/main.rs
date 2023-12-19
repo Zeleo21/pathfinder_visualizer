@@ -33,7 +33,10 @@ struct MazeRequest {
 
 async fn dfs(data: web::Data<AppState>, req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, actix_web::Error> {
     let app_state_paths = data.maze.lock().unwrap();
-    let actor = MyWs::new((*app_state_paths).clone());
+    
+    let paths = draw(&app_state_paths);
+    let actor = MyWs::new((*app_state_paths).clone(),create_document(&paths, None, &app_state_paths));
+
     let resp  = ws::start(
         actor,
         &req,

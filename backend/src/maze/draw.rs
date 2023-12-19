@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use svg::node::element::path::Data;
-use svg::node::element::{Path, Rectangle, Mask};
+use svg::node::element::{Path, Rectangle, Mask, SVG};
 use svg::Document;
 
 use crate::maze::Wall::*;
@@ -47,6 +47,17 @@ pub fn create_document(paths: &Vec<Path>, squares: Option<&Vec<Rectangle>>, maze
   //println!("{}", document.clone().to_string());
   return document;
 }
+
+//TODO CREATE THE add_to_document FUNCTION THAT WILL TAKE THE PATHS/SQUARES AND ADD THEM TO AN EXISTING DOCUMENT
+
+pub fn add_to_document(document: &mut Document, paths: &Vec<Path>, squares: Option<&Vec<Rectangle>>) -> Document {
+  let mut newDocument = document.clone();
+  if let Some(squares) = squares {
+    newDocument = newDocument.add(masked_group(paths, squares));
+  }
+  newDocument
+}
+
 
 fn masked_group(paths: &Vec<Path>, squares: &Vec<Rectangle>) -> svg::node::element::Group {
   // Create a group to apply the mask to both the rectangle and the path line

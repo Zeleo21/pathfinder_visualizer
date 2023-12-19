@@ -1,7 +1,8 @@
 use actix::{Actor, StreamHandler};
 use actix_web::{web, error::InternalError};
 use actix_web_actors::ws;
-use backend::{maze::Maze, draw::{draw, fill_maze, create_document}};
+use backend::{maze::Maze, draw::{draw, fill_maze, create_document, fill_cell, add_to_document}};
+use svg::Document;
 use std::{time::{Duration, Instant}, sync::Mutex};
 
 use actix::prelude::*;
@@ -19,7 +20,8 @@ const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 pub struct MyWs {
     hb: Instant,
     maze: Maze,
-    active_mode: bool
+    active_mode: bool,
+    document: Document,
 }
 
 impl Actor for MyWs {
@@ -31,12 +33,15 @@ impl Actor for MyWs {
 }
 
 impl MyWs {
-    pub fn new(maze: Maze) -> Self {
-        Self { hb: Instant::now(), maze: maze , active_mode: true}
+    pub fn new(maze: Maze, document: Document) -> Self {
+        Self { hb: Instant::now(), maze: maze , active_mode: true, document: document}
     }
 
     pub fn update_maze(&mut self, maze: Maze) {
         self.maze = maze;
+    }
+    pub fn update_document(&mut self, document: Document) {
+        self.document = document;
     }
     /// helper method that sends ping to client every 5 seconds (HEARTBEAT_INTERVAL).
     ///
@@ -61,15 +66,29 @@ impl MyWs {
     
 
     fn dfs(&mut self, ctx: &mut <Self as Actor>::Context) {
-        ctx.run_interval(Duration::from_secs(2), |act, ctx| {
+        ctx.run_interval(Duration::from_millis(100), |act, ctx| {
             if !act.active_mode {
                 return;
             }
             println!("dfs");
             let paths = draw(&act.maze);
-            let squares = fill_maze(&act.maze);
-            let document = create_document( &paths, Some(&squares), &act.maze);
-            ctx.text(document.to_string());
+            let mut squares = vec![];
+            let current_cell = act.maze.get_current_cell();
+
+            if current_cell == (act.maze.width() - 1, act.maze.height() - 1) {
+                println!("--------------FOUND THE EXIT SIUUUUUU------------");
+                return;
+            }
+
+            fill_cell(&mut squares, current_cell);
+            let free_neighbors = act.maze.free_neighbour(current_cell);
+            println!("Free neighbors: {:?}", free_neighbors);
+            act.maze.set_current_cell(free_neighbors.into_iter().nth(0).unwrap().unwrap());
+
+            let new_document = add_to_document(&mut act.document, &paths, Some(&squares));
+            act.update_document(new_document);
+
+            ctx.text(act.document.to_string());
         });
     }
 

@@ -41,17 +41,26 @@ pub struct Maze {
   width: u32,
   height: u32,
   walls: HashMap<Cell, HashSet<Wall>>,
+  current_cell: Cell,
 }
 impl Maze {
   pub fn new_empty() -> Maze {
     let walls = HashMap::new();
-    Maze { width: 0, height: 0, walls }
+    Maze { width: 0, height: 0, walls, current_cell: (0, 0) }
   }
   pub fn new(width: u32, height: u32) -> Maze {
     let walls = HashMap::new();
-    Maze { width, height, walls }
+    Maze { width, height, walls, current_cell: (0, 0) }
   }
 
+  pub fn get_current_cell(&mut self) -> Cell {
+    self.current_cell
+  }
+  
+  pub fn set_current_cell(&mut self, cell: Cell) {
+    self.current_cell = cell;
+  }
+  
   pub fn add_cell(&mut self, cell: Cell, walls: &[Wall]) -> &mut Maze {
     self.walls.insert(cell, walls.into_iter().copied().collect());
     self

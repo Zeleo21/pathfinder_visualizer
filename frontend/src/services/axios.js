@@ -3,8 +3,8 @@ import axios from "axios";
 
 export const getMaze = () => {
     const body = JSON.stringify({
-        "width": 3,
-        "height": 3
+        "width": 10,
+        "height": 10
     })
     return axios.post("http://localhost:8080/maze", body, {
         headers: {

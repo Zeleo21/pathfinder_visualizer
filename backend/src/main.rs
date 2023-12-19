@@ -33,7 +33,7 @@ struct MazeRequest {
 
 async fn dfs(data: web::Data<AppState>, req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, actix_web::Error> {
     let app_state_paths = data.maze.lock().unwrap();
-    
+
     let paths = draw(&app_state_paths);
     let actor = MyWs::new((*app_state_paths).clone(),create_document(&paths, None, &app_state_paths));
 
@@ -50,6 +50,8 @@ async fn dfs(data: web::Data<AppState>, req: HttpRequest, stream: web::Payload) 
     // let document = create_document(&paths, Some(&squares), &maze);
 }
 
+
+//TODO move This to the websocket.
 async fn get_maze(data: web::Data<AppState>, req: web::Json<MazeRequest>, stream: web::Payload) -> impl Responder {
       let params = req.into_inner();
       if params.width == 0 || params.height == 0 {

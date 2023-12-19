@@ -1,8 +1,12 @@
 use actix::{Actor, StreamHandler};
+use actix_web::{web, error::InternalError};
 use actix_web_actors::ws;
-use std::time::{Duration, Instant};
+use backend::{maze::Maze, draw::{draw, fill_maze, create_document}};
+use std::{time::{Duration, Instant}, sync::Mutex};
 
 use actix::prelude::*;
+
+use crate::MazeRequest;
 /// Define HTTP actor
 
 /// How often heartbeat pings are sent
@@ -11,9 +15,11 @@ const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 /// How long before lack of client response causes a timeout
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
-
+#[derive(Clone)]
 pub struct MyWs {
     hb: Instant,
+    maze: Maze,
+    active_mode: bool
 }
 
 impl Actor for MyWs {
@@ -25,10 +31,13 @@ impl Actor for MyWs {
 }
 
 impl MyWs {
-    pub fn new() -> Self {
-        Self { hb: Instant::now() }
+    pub fn new(maze: Maze) -> Self {
+        Self { hb: Instant::now(), maze: maze , active_mode: true}
     }
 
+    pub fn update_maze(&mut self, maze: Maze) {
+        self.maze = maze;
+    }
     /// helper method that sends ping to client every 5 seconds (HEARTBEAT_INTERVAL).
     ///
     /// also this method checks heartbeats from client
@@ -49,6 +58,24 @@ impl MyWs {
             ctx.ping(b"Connection alive");
         });
     }
+    
+
+    fn dfs(&mut self, ctx: &mut <Self as Actor>::Context) {
+        ctx.run_interval(Duration::from_secs(2), |act, ctx| {
+            if !act.active_mode {
+                return;
+            }
+            println!("dfs");
+            let paths = draw(&act.maze);
+            let squares = fill_maze(&act.maze);
+            let document = create_document( &paths, Some(&squares), &act.maze);
+            ctx.text(document.to_string());
+        });
+    }
+
+    fn set_active_mode(&mut self) {
+        self.active_mode = !self.active_mode;
+    }
 }
 
 /// Handler for ws::Message message
@@ -62,9 +89,20 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
             Ok(ws::Message::Pong(_)) => {
                 self.hb = Instant::now();
             }
-            Ok(ws::Message::Text(text)) => ctx.text(text),
+            Ok(ws::Message::Text(text)) => {
+                if text =="dfs" {
+                    self.dfs(ctx);
+                }
+                else if text == "stop" {
+                    self.set_active_mode();
+                }
+                else  {
+                    ctx.text(text);
+                }
+            },
             Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
             Ok(ws::Message::Close(reason)) => {
+                println!("Websocket Client disconnected: {:?}", reason);
                 ctx.close(reason);
                 ctx.stop();
             }

@@ -6,7 +6,7 @@ use Wall::*;
 /// (row, col), 0-indexed
 pub type Cell = (u32, u32);
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum Wall {
   Top,
   Right,
@@ -36,7 +36,7 @@ impl std::fmt::Display for Wall {
   }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Maze {
   width: u32,
   height: u32,

@@ -16,8 +16,6 @@ use actix_web_actors::ws;
 
 mod server;
 
-
-
 struct AppState {
     maze: Mutex<Maze>,
 }
@@ -34,8 +32,10 @@ struct MazeRequest {
 }
 
 async fn dfs(data: web::Data<AppState>, req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, actix_web::Error> {
+    let app_state_paths = data.maze.lock().unwrap();
+    let actor = MyWs::new((*app_state_paths).clone());
     let resp  = ws::start(
-        MyWs::new(),
+        actor,
         &req,
         stream
     );
@@ -47,7 +47,7 @@ async fn dfs(data: web::Data<AppState>, req: HttpRequest, stream: web::Payload) 
     // let document = create_document(&paths, Some(&squares), &maze);
 }
 
-async fn get_maze(data: web::Data<AppState>, req: web::Json<MazeRequest>) -> impl Responder {
+async fn get_maze(data: web::Data<AppState>, req: web::Json<MazeRequest>, stream: web::Payload) -> impl Responder {
       let params = req.into_inner();
       if params.width == 0 || params.height == 0 {
           return HttpResponse::BadRequest().body("Invalid request, please provide valid width and height");
@@ -59,27 +59,10 @@ async fn get_maze(data: web::Data<AppState>, req: web::Json<MazeRequest>) -> imp
       let paths = draw(&maze);
       let document = create_document(&paths, None, &maze);
 
-      //This is to save the maze into the app state for reusability.
-
-      //
-      //TODO: This part should save the current state of the maze into the app state.
-      //      Create a new directory called /utils/serializers and create a new file called app_state.rs
-      //      This file should handle the maze state to have persistent data accessibility with serializer and deserializer of the maze.
-      //
-
       let mut app_state_maze = data.maze.lock().unwrap();
       *app_state_maze = maze.clone();
-      //*app_state_paths = paths.clone().into_iter().map(|path| { path.to_string() + "\n" }).collect::<String>();
-     // println!("App state is now \n {}", *app_state_paths);
       println!("------------------------------------------------------------------------");
-      //let newPaths = deserialize_path(&app_state_paths);
 
-      //let newDoc = create_document(&newPaths, None, &maze);
-      //println!("{} ", newDoc.to_string());
-
-      //
-      //
-      //
 
       return HttpResponse::Ok().body(document.to_string());
 }

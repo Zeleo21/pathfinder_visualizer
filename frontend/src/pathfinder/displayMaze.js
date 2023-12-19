@@ -5,12 +5,15 @@ import Navbar from '../misc/Navbar';
 import {getMaze, dfs} from '../services/axios';
 import { useRef } from 'react';
 import DisplayDfs from "./components/dfsButton";
+import StopButton from "./components/stopButton";
 
 const baseURL = process.env.BACKEND_URL;
 
 export default function DisplayMaze() {
     const [maze, setMaze] = useState(null);
     const [renderMaze, setRenderMaze] = useState(false);
+    const [socket, setSocket] = useState(null);
+    const [stop, setStop] = useState(false);
 
     const refreshMaze = () => {
         setRenderMaze(!renderMaze);
@@ -20,8 +23,42 @@ export default function DisplayMaze() {
         getMaze().then((data) => {
             setMaze(data.data); 
         });
+        
+        console.log("connected");
+        if(!socket) {
+            connect();
+        }
                 // Reset both actions after processing
     }, [renderMaze]);
+
+    function connect() {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          console.log('WebSocket connection is already open');
+          return;
+        }
+      
+        const newSocket = new WebSocket('ws://localhost:8080/maze/dfs');
+        console.log("new socket");
+
+        newSocket.addEventListener('open', (event) => {
+            console.log("Sending a new message");
+          newSocket.send('Hello, server!');
+          setSocket(newSocket);
+        });
+
+        newSocket.addEventListener('message', (event) => {
+          console.log('Message from server:', event.data);
+          if(event.data === "Hello, server!") {
+            return;
+          }
+          setMaze(event.data);
+        })
+      
+        newSocket.addEventListener('close', (event) => {
+          console.log('WebSocket connection closed');
+          setSocket(null);
+        });
+      }
 
     if(!maze) {
         return null;
@@ -45,7 +82,8 @@ export default function DisplayMaze() {
                 </div>
                 </div>
                 <div class="col">
-                    <DisplayDfs setMaze={setMaze}></DisplayDfs>
+                    <DisplayDfs socket={socket} setStop={setStop}></DisplayDfs>
+                    {stop && <StopButton setStop={setStop} socket={socket}></StopButton>}
                 </div>
             </div>
         </div>
